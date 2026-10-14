@@ -1,0 +1,1108 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#0b0f19">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>NutriDB Cloud AI — Xiaomi 15T · Tab S10 Lite · PC</title>
+<style>
+  :root {
+    --bg: #0b0f19;
+    --bg-elevated: #111827;
+    --card: rgba(30, 41, 59, 0.75);
+    --text: #f8fafc;
+    --muted: #94a3b8;
+    --border: rgba(148, 163, 184, 0.16);
+    --kcal: #f59e0b;
+    --kcal-soft: rgba(245, 158, 11, 0.15);
+    --prot: #38bdf8;
+    --prot-soft: rgba(56, 189, 248, 0.15);
+    --carb: #10b981;
+    --carb-soft: rgba(16, 185, 129, 0.15);
+    --fat: #f43f5e;
+    --fat-soft: rgba(244, 63, 94, 0.15);
+    --accent: #6366f1;
+    --accent-glow: rgba(99, 102, 241, 0.35);
+    --success: #22c55e;
+    --danger: #ef4444;
+    --radius-lg: 18px;
+    --radius-md: 12px;
+    --radius-sm: 8px;
+    --shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.5);
+  }
+
+  * {
+    box-sizing: border-box;
+    -webkit-tap-highlight-color: transparent;
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  }
+
+  body {
+    margin: 0;
+    background: radial-gradient(circle at 15% 0%, #1e1b4b 0%, var(--bg) 45%);
+    background-attachment: fixed;
+    color: var(--text);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  .app-shell {
+    display: grid;
+    grid-template-columns: 260px 1fr;
+    min-height: 100vh;
+    max-width: 1480px;
+    margin: 0 auto;
+  }
+
+  /* SIDEBAR */
+  .sidebar {
+    background: rgba(17, 24, 39, 0.88);
+    backdrop-filter: blur(16px);
+    border-right: 1px solid var(--border);
+    padding: 24px 16px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    height: 100vh;
+  }
+
+  .brand {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 0 8px 20px 8px;
+    border-bottom: 1px solid var(--border);
+  }
+  .brand-logo {
+    width: 42px;
+    height: 42px;
+    border-radius: 12px;
+    background: linear-gradient(135deg, var(--accent), #38bdf8);
+    display: grid;
+    place-items: center;
+    font-size: 1.35rem;
+    box-shadow: 0 4px 15px var(--accent-glow);
+  }
+  .brand-text h1 {
+    font-size: 1.15rem;
+    font-weight: 800;
+    margin: 0;
+  }
+  .brand-text span {
+    font-size: 0.74rem;
+    color: var(--muted);
+  }
+
+  .nav-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-top: 20px;
+  }
+
+  .nav-btn {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    width: 100%;
+    padding: 12px 14px;
+    border-radius: var(--radius-md);
+    border: 1px solid transparent;
+    background: transparent;
+    color: var(--muted);
+    font-size: 0.92rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-align: left;
+  }
+  .nav-btn:hover {
+    background: rgba(255, 255, 255, 0.04);
+    color: var(--text);
+  }
+  .nav-btn.active {
+    background: linear-gradient(135deg, rgba(99, 102, 241, 0.22), rgba(56, 189, 248, 0.12));
+    color: #fff;
+    border-color: rgba(99, 102, 241, 0.45);
+  }
+
+  .sync-status-box {
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    padding: 12px;
+    font-size: 0.78rem;
+    color: var(--muted);
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .sync-indicator {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 700;
+    color: var(--text);
+  }
+  .dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 99px;
+    background: var(--kcal);
+  }
+  .dot.online { background: var(--success); box-shadow: 0 0 8px var(--success); }
+
+  /* CONTENIDO PRINCIPAL */
+  .main-content {
+    padding: 24px 28px 100px 28px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    max-width: 100%;
+  }
+
+  .topbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 14px;
+    background: var(--card);
+    backdrop-filter: blur(12px);
+    border: 1px solid var(--border);
+    padding: 14px 20px;
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow);
+  }
+
+  .date-nav {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .icon-btn {
+    background: var(--bg-elevated);
+    color: var(--text);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    width: 36px;
+    height: 36px;
+    display: grid;
+    place-items: center;
+    cursor: pointer;
+    font-weight: 700;
+  }
+  input[type="date"] {
+    background: var(--bg-elevated);
+    color: var(--text);
+    border: 1px solid var(--border);
+    padding: 8px 12px;
+    border-radius: var(--radius-sm);
+    font-weight: 700;
+    font-size: 0.92rem;
+  }
+  .today-pill {
+    font-size: 0.76rem;
+    padding: 6px 11px;
+    border-radius: 99px;
+    background: rgba(99, 102, 241, 0.18);
+    color: #a5b4fc;
+    border: 1px solid rgba(99, 102, 241, 0.35);
+    cursor: pointer;
+    font-weight: 600;
+  }
+
+  .goals-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+  .goal-mini {
+    font-size: 0.78rem;
+    background: var(--bg-elevated);
+    padding: 6px 10px;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 5px;
+  }
+  .goal-mini input {
+    width: 50px;
+    background: transparent;
+    border: none;
+    color: var(--text);
+    font-weight: 700;
+    text-align: right;
+    font-size: 0.84rem;
+  }
+
+  /* TARJETAS DE ANILLOS */
+  .kpi-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 14px;
+  }
+  .kpi-card {
+    background: var(--card);
+    backdrop-filter: blur(12px);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 16px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    box-shadow: var(--shadow);
+  }
+  .ring-wrap {
+    width: 62px;
+    height: 62px;
+    position: relative;
+    flex-shrink: 0;
+  }
+  .ring-wrap svg {
+    width: 62px;
+    height: 62px;
+    transform: rotate(-90deg);
+  }
+  .ring-bg { fill: none; stroke: rgba(255, 255, 255, 0.08); stroke-width: 6; }
+  .ring-progress { fill: none; stroke-width: 6; stroke-linecap: round; transition: stroke-dashoffset 0.4s ease; }
+  .ring-pct { position: absolute; inset: 0; display: grid; place-items: center; font-size: 0.76rem; font-weight: 800; }
+  .kpi-info { flex: 1; min-width: 0; }
+  .kpi-label { font-size: 0.73rem; font-weight: 700; text-transform: uppercase; color: var(--muted); margin-bottom: 4px; }
+  .kpi-numbers { font-size: 1.25rem; font-weight: 800; white-space: nowrap; }
+  .kpi-numbers small { font-size: 0.78rem; color: var(--muted); font-weight: 500; }
+  .kpi-rem { font-size: 0.74rem; margin-top: 4px; color: var(--muted); }
+
+  /* WORKSPACE 2 COLUMNAS */
+  .workspace-grid {
+    display: grid;
+    grid-template-columns: 1.35fr 1fr;
+    gap: 20px;
+    align-items: start;
+  }
+
+  /* CAJA DE IA GEMINI */
+  .smart-box {
+    background: linear-gradient(135deg, rgba(99, 102, 241, 0.18), rgba(14, 165, 233, 0.09));
+    border: 1px solid rgba(99, 102, 241, 0.45);
+    border-radius: var(--radius-lg);
+    padding: 18px;
+    box-shadow: var(--shadow);
+  }
+  .smart-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 12px;
+    flex-wrap: wrap;
+  }
+  .smart-title { font-weight: 700; font-size: 0.96rem; display: flex; align-items: center; gap: 8px; }
+  .meal-pills { display: flex; gap: 6px; flex-wrap: wrap; }
+  .meal-pill {
+    padding: 6px 11px;
+    border-radius: 99px;
+    font-size: 0.76rem;
+    font-weight: 600;
+    border: 1px solid var(--border);
+    background: var(--bg-elevated);
+    color: var(--muted);
+    cursor: pointer;
+  }
+  .meal-pill.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+
+  .smart-input-wrap { display: flex; gap: 10px; flex-wrap: wrap; }
+  .smart-input-wrap textarea {
+    flex: 1;
+    min-width: 210px;
+    height: 62px;
+    background: rgba(11, 15, 25, 0.85);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    color: var(--text);
+    padding: 10px 14px;
+    font-size: 0.9rem;
+    resize: none;
+  }
+  .btn-primary {
+    background: linear-gradient(135deg, var(--accent), #4f46e5);
+    color: white;
+    border: none;
+    border-radius: var(--radius-md);
+    padding: 10px 18px;
+    font-weight: 700;
+    font-size: 0.88rem;
+    cursor: pointer;
+    box-shadow: 0 4px 12px var(--accent-glow);
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .btn-primary:disabled { opacity: 0.6; cursor: wait; }
+
+  .quick-chips { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 10px; }
+  .chip {
+    font-size: 0.73rem;
+    padding: 5px 10px;
+    border-radius: 99px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid var(--border);
+    color: var(--muted);
+    cursor: pointer;
+  }
+  .chip:hover { background: rgba(99, 102, 241, 0.2); color: #fff; border-color: var(--accent); }
+
+  /* TARJETAS DE COMIDAS */
+  .meals-stack { display: flex; flex-direction: column; gap: 14px; }
+  .meal-card {
+    background: var(--card);
+    backdrop-filter: blur(12px);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 16px;
+    box-shadow: var(--shadow);
+  }
+  .meal-card-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-bottom: 10px;
+    margin-bottom: 10px;
+    border-bottom: 1px solid var(--border);
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .meal-card-title { font-size: 1rem; font-weight: 700; margin: 0; }
+  .meal-badges { display: flex; gap: 6px; font-size: 0.76rem; font-weight: 700; }
+  .badge { padding: 3px 8px; border-radius: 6px; }
+  .b-kcal { background: var(--kcal-soft); color: var(--kcal); }
+  .b-prot { background: var(--prot-soft); color: var(--prot); }
+  .b-carb { background: var(--carb-soft); color: var(--carb); }
+  .b-fat  { background: var(--fat-soft);  color: var(--fat); }
+
+  .food-item {
+    display: grid;
+    grid-template-columns: 1.8fr 105px 1.3fr 30px;
+    gap: 10px;
+    align-items: center;
+    padding: 8px 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+    font-size: 0.87rem;
+  }
+  .food-item:last-child { border-bottom: none; }
+  .gram-box {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    background: var(--bg-elevated);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 4px 8px;
+  }
+  .gram-box input {
+    width: 100%;
+    background: transparent;
+    border: none;
+    color: var(--text);
+    font-weight: 700;
+    text-align: right;
+  }
+  .food-item-macros { text-align: right; font-size: 0.77rem; color: var(--muted); white-space: nowrap; }
+  .del-btn { background: transparent; border: none; color: var(--muted); cursor: pointer; font-size: 0.95rem; }
+  .del-btn:hover { color: var(--danger); }
+
+  .manual-add-row {
+    display: flex;
+    gap: 8px;
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 1px dashed var(--border);
+  }
+  .manual-add-row select, .form-input {
+    flex: 1;
+    background: var(--bg-elevated);
+    color: var(--text);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 9px 12px;
+    font-size: 0.85rem;
+  }
+  .btn-soft {
+    background: rgba(99, 102, 241, 0.15);
+    color: #a5b4fc;
+    border: 1px solid rgba(99, 102, 241, 0.35);
+    border-radius: var(--radius-sm);
+    padding: 8px 12px;
+    font-weight: 700;
+    font-size: 0.82rem;
+    cursor: pointer;
+  }
+
+  /* CALENDARIO */
+  .calendar-card {
+    background: var(--card);
+    backdrop-filter: blur(12px);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 18px;
+    box-shadow: var(--shadow);
+  }
+  .cal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; }
+  .cal-title { font-size: 1.05rem; font-weight: 800; }
+  .cal-weekdays { display: grid; grid-template-columns: repeat(7, 1fr); text-align: center; font-size: 0.72rem; font-weight: 700; color: var(--muted); margin-bottom: 8px; }
+  .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; }
+  .cal-day {
+    aspect-ratio: 1 / 1.08;
+    background: rgba(17, 24, 39, 0.65);
+    border: 1px solid var(--border);
+    border-radius: 11px;
+    padding: 6px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    cursor: pointer;
+  }
+  .cal-day.empty { background: transparent; border-color: transparent; pointer-events: none; }
+  .cal-day.selected { border: 2px solid var(--accent); background: rgba(99, 102, 241, 0.18); }
+  .cal-day.has-data { background: linear-gradient(160deg, rgba(30, 41, 59, 0.9), rgba(15, 23, 42, 0.9)); }
+  .cal-day-top { display: flex; justify-content: space-between; align-items: center; font-size: 0.76rem; font-weight: 700; }
+  .status-dot { width: 7px; height: 7px; border-radius: 99px; }
+  .cal-day-kcal { font-size: 0.7rem; font-weight: 800; color: var(--kcal); text-align: center; }
+  .cal-mini-bars { display: flex; flex-direction: column; gap: 2px; }
+  .cal-mini-bar { height: 3px; border-radius: 99px; background: rgba(255, 255, 255, 0.08); overflow: hidden; }
+  .cal-mini-bar > div { height: 100%; }
+
+  /* TABLAS */
+  .table-wrap { overflow-x: auto; }
+  table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+  th, td { padding: 10px; text-align: left; border-bottom: 1px solid var(--border); }
+  th { font-size: 0.74rem; text-transform: uppercase; color: var(--muted); }
+
+  /* BOTTOM NAV MÓVIL */
+  .bottom-nav {
+    display: none;
+    position: fixed;
+    bottom: 0; left: 0; right: 0;
+    background: rgba(15, 23, 42, 0.94);
+    backdrop-filter: blur(20px);
+    border-top: 1px solid var(--border);
+    padding: 6px 8px calc(6px + env(safe-area-inset-bottom));
+    z-index: 100;
+    justify-content: space-around;
+  }
+  .bnav-btn {
+    background: transparent; border: none; color: var(--muted);
+    display: flex; flex-direction: column; align-items: center; gap: 3px;
+    font-size: 0.68rem; font-weight: 600; padding: 6px 12px; border-radius: 10px;
+  }
+  .bnav-btn.active { color: #fff; background: rgba(99, 102, 241, 0.22); }
+  .bnav-btn span.ico { font-size: 1.18rem; }
+
+  .hidden { display: none !important; }
+
+  @media (max-width: 1100px) {
+    .workspace-grid { grid-template-columns: 1fr; }
+    .kpi-grid { grid-template-columns: repeat(2, 1fr); }
+  }
+  @media (max-width: 780px) {
+    .app-shell { grid-template-columns: 1fr; }
+    .sidebar { display: none; }
+    .bottom-nav { display: flex; }
+    .main-content { padding: 12px 12px 92px 12px; gap: 14px; }
+    .food-item { grid-template-columns: 1fr 90px 28px; }
+    .food-item-macros { grid-column: 1 / -1; text-align: left; margin-top: -4px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="app-shell">
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div>
+      <div class="brand">
+        <div class="brand-logo">⚡</div>
+        <div class="brand-text">
+          <h1>NutriDB Cloud</h1>
+          <span>Xiaomi · Tab S10 · PC</span>
+        </div>
+      </div>
+
+      <nav class="nav-list">
+        <button class="nav-btn active" onclick="switchView('dashboard', this)">🏠 Diario y Comidas</button>
+        <button class="nav-btn" onclick="switchView('calendario', this)">📅 Calendario Mensual</button>
+        <button class="nav-btn" onclick="switchView('historial', this)">🗄️ Base de Datos</button>
+        <button class="nav-btn" onclick="switchView('cloud', this)">☁️ Nube + IA Gemini</button>
+      </nav>
+    </div>
+
+    <div class="sync-status-box">
+      <div class="sync-indicator">
+        <span id="sync-dot" class="dot"></span>
+        <span id="sync-label">Modo Local Activo</span>
+      </div>
+      <div id="sync-sub">Configura tu URL de Nube en la pestaña ☁️ para sincronizar tus 3 dispositivos solos.</div>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <main class="main-content">
+    <header class="topbar">
+      <div class="date-nav">
+        <button class="icon-btn" onclick="stepDate(-1)">◀</button>
+        <input type="date" id="active-date" value="2026-10-14" onchange="onDateInputChange()">
+        <span class="today-pill" onclick="jumpToToday()">Hoy (14 Oct)</span>
+        <button class="icon-btn" onclick="stepDate(1)">▶</button>
+      </div>
+
+      <div class="goals-row">
+        <span style="font-size:0.76rem;color:var(--muted);font-weight:700;">🎯 Metas:</span>
+        <div class="goal-mini"><span style="color:var(--kcal)">●</span><input type="number" id="goal-kcal" value="2750" step="50" onchange="updateGoals()"><small>kcal</small></div>
+        <div class="goal-mini"><span style="color:var(--prot)">●</span><input type="number" id="goal-p" value="150" step="5" onchange="updateGoals()"><small>P</small></div>
+        <div class="goal-mini"><span style="color:var(--carb)">●</span><input type="number" id="goal-c" value="355" step="10" onchange="updateGoals()"><small>C</small></div>
+        <div class="goal-mini"><span style="color:var(--fat)">●</span><input type="number" id="goal-f" value="80" step="5" onchange="updateGoals()"><small>G</small></div>
+      </div>
+    </header>
+
+    <!-- ANILLOS KPI -->
+    <section class="kpi-grid">
+      <div class="kpi-card">
+        <div class="ring-wrap">
+          <svg viewBox="0 0 64 64"><circle class="ring-bg" cx="32" cy="32" r="26"></circle><circle id="ring-kcal" class="ring-progress" cx="32" cy="32" r="26" stroke="var(--kcal)" stroke-dasharray="163.36" stroke-dashoffset="163.36"></circle></svg>
+          <div class="ring-pct" id="pct-kcal">0%</div>
+        </div>
+        <div class="kpi-info">
+          <div class="kpi-label">Calorías</div>
+          <div class="kpi-numbers"><span id="val-kcal">0</span> <small>/ <span id="max-kcal">2750</span></small></div>
+          <div class="kpi-rem" id="rem-kcal"></div>
+        </div>
+      </div>
+
+      <div class="kpi-card">
+        <div class="ring-wrap">
+          <svg viewBox="0 0 64 64"><circle class="ring-bg" cx="32" cy="32" r="26"></circle><circle id="ring-p" class="ring-progress" cx="32" cy="32" r="26" stroke="var(--prot)" stroke-dasharray="163.36" stroke-dashoffset="163.36"></circle></svg>
+          <div class="ring-pct" id="pct-p">0%</div>
+        </div>
+        <div class="kpi-info">
+          <div class="kpi-label">Proteínas</div>
+          <div class="kpi-numbers"><span id="val-p">0</span>g <small>/ <span id="max-p">150</span>g</small></div>
+          <div class="kpi-rem" id="rem-p"></div>
+        </div>
+      </div>
+
+      <div class="kpi-card">
+        <div class="ring-wrap">
+          <svg viewBox="0 0 64 64"><circle class="ring-bg" cx="32" cy="32" r="26"></circle><circle id="ring-c" class="ring-progress" cx="32" cy="32" r="26" stroke="var(--carb)" stroke-dasharray="163.36" stroke-dashoffset="163.36"></circle></svg>
+          <div class="ring-pct" id="pct-c">0%</div>
+        </div>
+        <div class="kpi-info">
+          <div class="kpi-label">Carbohidratos</div>
+          <div class="kpi-numbers"><span id="val-c">0</span>g <small>/ <span id="max-c">355</span>g</small></div>
+          <div class="kpi-rem" id="rem-c"></div>
+        </div>
+      </div>
+
+      <div class="kpi-card">
+        <div class="ring-wrap">
+          <svg viewBox="0 0 64 64"><circle class="ring-bg" cx="32" cy="32" r="26"></circle><circle id="ring-f" class="ring-progress" cx="32" cy="32" r="26" stroke="var(--fat)" stroke-dasharray="163.36" stroke-dashoffset="163.36"></circle></svg>
+          <div class="ring-pct" id="pct-f">0%</div>
+        </div>
+        <div class="kpi-info">
+          <div class="kpi-label">Grasas</div>
+          <div class="kpi-numbers"><span id="val-f">0</span>g <small>/ <span id="max-f">80</span>g</small></div>
+          <div class="kpi-rem" id="rem-f"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- VISTA 1: DIARIO + CALENDARIO -->
+    <div id="view-dashboard" class="workspace-grid">
+      <div style="display:flex; flex-direction:column; gap:16px;">
+        <div class="smart-box">
+          <div class="smart-header">
+            <div class="smart-title">✨ Dime qué has comido (Diccionario Local + IA de Gemini en Vivo)</div>
+            <div class="meal-pills">
+              <button class="meal-pill" onclick="selectSmartMeal('Desayuno', this)">☀️ Desayuno</button>
+              <button class="meal-pill" onclick="selectSmartMeal('Comida', this)">🍽️ Comida</button>
+              <button class="meal-pill" onclick="selectSmartMeal('Merienda', this)">🥤 Merienda</button>
+              <button class="meal-pill active" onclick="selectSmartMeal('Cena', this)">🌙 Cena</button>
+            </div>
+          </div>
+
+          <div class="smart-input-wrap">
+            <textarea id="nlp-text" placeholder="Escribe cualquier plato (ej: '200g pechuga de pollo, 100g arroz y 2 huevos' o 'un plato de lentejas y un yogur griego')..."></textarea>
+            <button id="btn-smart-add" class="btn-primary" onclick="smartAddWithAI()">✨ Analizar y Guardar</button>
+          </div>
+
+          <div class="quick-chips">
+            <span class="chip" onclick="quickAdd('Cena', 'pollo', 200)">+ 200g Pollo</span>
+            <span class="chip" onclick="quickAdd('Cena', 'arroz', 100)">+ 100g Arroz</span>
+            <span class="chip" onclick="quickAdd('Cena', 'huevos', 120)">+ 2 Huevos</span>
+            <span class="chip" onclick="quickAdd('Merienda', 'whey', 30)">+ 1 Cazo Whey</span>
+            <span class="chip" onclick="quickAdd('Cena', 'atun', 60)">+ 1 Lata Atún</span>
+            <span class="chip" onclick="quickAdd('Cena', 'patata', 250)">+ 250g Patata</span>
+          </div>
+          <div id="nlp-msg" style="font-size:0.78rem; color:var(--muted); margin-top:8px;"></div>
+        </div>
+
+        <div id="meals-list" class="meals-stack"></div>
+      </div>
+
+      <!-- CALENDARIO -->
+      <div class="calendar-card">
+        <div class="cal-header">
+          <button class="icon-btn" onclick="changeCalendarMonth(-1)">◀</button>
+          <div class="cal-title" id="cal-month-title">Octubre 2026</div>
+          <button class="icon-btn" onclick="changeCalendarMonth(1)">▶</button>
+        </div>
+        <div class="cal-weekdays"><div>LUN</div><div>MAR</div><div>MIÉ</div><div>JUE</div><div>VIE</div><div>SÁB</div><div>DOM</div></div>
+        <div class="cal-grid" id="cal-grid-side"></div>
+      </div>
+    </div>
+
+    <!-- VISTA 2: CALENDARIO PANTALLA COMPLETA -->
+    <div id="view-calendario" class="hidden">
+      <div class="calendar-card">
+        <div class="cal-header">
+          <button class="icon-btn" onclick="changeCalendarMonth(-1)">◀</button>
+          <div class="cal-title" id="cal-month-title-full">Octubre 2026</div>
+          <button class="icon-btn" onclick="changeCalendarMonth(1)">▶</button>
+        </div>
+        <div class="cal-weekdays"><div>LUN</div><div>MAR</div><div>MIÉ</div><div>JUE</div><div>VIE</div><div>SÁB</div><div>DOM</div></div>
+        <div class="cal-grid" id="cal-grid-full"></div>
+      </div>
+    </div>
+
+    <!-- VISTA 3: HISTORIAL BD -->
+    <div id="view-historial" class="hidden" style="display:flex; flex-direction:column; gap:16px;">
+      <div class="meal-card">
+        <div class="meal-card-head">
+          <h3 class="meal-card-title">📊 Historial Diario Consolidado</h3>
+          <button class="btn-soft" onclick="exportCSV()">⬇️ Descargar CSV</button>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Fecha</th><th>Ítems</th><th>Kcal</th><th>Prot</th><th>Carbos</th><th>Grasas</th><th></th></tr></thead>
+            <tbody id="db-days-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="meal-card">
+        <h3 class="meal-card-title" style="margin-bottom:10px;">🍎 Catálogo de Alimentos (Se amplía solo cuando usas la IA)</h3>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Alimento</th><th>Kcal/100g</th><th>P</th><th>C</th><th>G</th></tr></thead>
+            <tbody id="cat-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- VISTA 4: CONFIGURACIÓN DE NUBE AUTOMÁTICA Y GEMINI API -->
+    <div id="view-cloud" class="hidden" style="display:flex; flex-direction:column; gap:18px;">
+      <div class="meal-card">
+        <h3 class="meal-card-title" style="margin-bottom:8px;">🤖 1. Conectar conmigo directamente (Gemini API Gratis)</h3>
+        <p style="font-size:0.85rem; color:var(--muted); line-height:1.5; margin-top:0;">
+          Para que yo analice cualquier comida automáticamente desde dentro de la app sin entrar al chat:
+          entra en <strong>aistudio.google.com/app/apikey</strong>, pulsa <em>"Create API Key"</em> (es 100% gratis) y pégala aquí.
+        </p>
+        <div style="display:flex; gap:10px; flex-wrap:wrap;">
+          <input type="password" id="cfg-gemini-key" class="form-input" placeholder="AIzaSy... (Tu Gemini API Key)">
+          <button class="btn-primary" onclick="saveCloudConfig()">Guardar Clave IA</button>
+        </div>
+      </div>
+
+      <div class="meal-card">
+        <h3 class="meal-card-title" style="margin-bottom:8px;">☁️ 2. Sincronización Automática entre Xiaomi 15T, Galaxy Tab S10 Lite y PC</h3>
+        <p style="font-size:0.85rem; color:var(--muted); line-height:1.5; margin-top:0;">
+          Crea una base de datos gratuita en 30 segundos en <strong>console.firebase.google.com</strong> $\rightarrow$ <em>Realtime Database</em> $\rightarrow$ <em>Crear en modo de prueba</em> y pega aquí la URL que te da (ej. <code>https://tu-proyecto-default-rtdb.europe-west1.firebasedatabase.app</code>). Pon la misma URL en tus 3 dispositivos y se sincronizarán solos al instante.
+        </p>
+        <div style="display:flex; gap:10px; flex-wrap:wrap; margin-bottom:12px;">
+          <input type="text" id="cfg-cloud-url" class="form-input" placeholder="https://tu-proyecto.firebasedatabase.app">
+          <input type="text" id="cfg-user-pin" class="form-input" style="max-width:170px;" placeholder="Canal (ej: alejandro_db)" value="alejandro_db">
+          <button class="btn-primary" onclick="saveCloudConfig()">Activar Auto-Sync</button>
+        </div>
+        <div style="display:flex; gap:10px; flex-wrap:wrap;">
+          <button class="btn-soft" onclick="pullFromCloud(true)">🔄 Forzar descarga de la nube ahora</button>
+          <button class="btn-soft" onclick="pushToCloud(true)">☁️ Subir mis datos actuales a la nube</button>
+        </div>
+        <div id="cloud-feedback" style="font-size:0.8rem; color:var(--muted); margin-top:10px;"></div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- BARRA INFERIOR MÓVIL -->
+<nav class="bottom-nav">
+  <button class="bnav-btn active" onclick="switchView('dashboard', this)"><span class="ico">🏠</span><span>Diario</span></button>
+  <button class="bnav-btn" onclick="switchView('calendario', this)"><span class="ico">📅</span><span>Calendario</span></button>
+  <button class="bnav-btn" onclick="switchView('historial', this)"><span class="ico">🗄️</span><span>Base Datos</span></button>
+  <button class="bnav-btn" onclick="switchView('cloud', this)"><span class="ico">☁️</span><span>Nube + IA</span></button>
+</nav>
+
+<script>
+  const DB_KEY = "nutridb_pro_alejandro_v2";
+  const CFG_KEY = "nutridb_cloud_cfg_v1";
+  let selectedSmartMeal = "Cena";
+  let calYear = 2026;
+  let calMonth = 9;
+
+  const defaultCatalog = [
+    { id: "tostadas", name: "Tostadas pequeñas (sin gluten)", keys: ["tostada", "tostadas", "pan"], kcal: 250, p: 4.2, c: 46.7, f: 5.0, unitG: 30 },
+    { id: "aceite", name: "Aceite de oliva virgen extra", keys: ["aceite", "aove"], kcal: 900, p: 0, c: 0, f: 100, unitG: 10 },
+    { id: "jamon", name: "Jamón york / cocido", keys: ["jamon york", "york", "jamon"], kcal: 110, p: 19.0, c: 1.0, f: 3.0, unitG: 25 },
+    { id: "leche", name: "Leche entera / semi", keys: ["leche", "vaso leche"], kcal: 66, p: 3.4, c: 4.6, f: 3.6, unitG: 250 },
+    { id: "patata", name: "Patatas cocidas / asadas", keys: ["patata", "patatas"], kcal: 86, p: 2.0, c: 20.0, f: 0.1, unitG: 150 },
+    { id: "pescado", name: "Pescado blanco (merluza, bacalao)", keys: ["pescado", "merluza", "bacalao"], kcal: 90, p: 19.0, c: 0, f: 1.25, unitG: 200 },
+    { id: "tomate", name: "Salsa de tomate / tomate frito", keys: ["tomate", "salsa tomate"], kcal: 170, p: 2.5, c: 12.0, f: 11.2, unitG: 100 },
+    { id: "avena", name: "Avena (copos)", keys: ["avena"], kcal: 385, p: 13.1, c: 66.2, f: 6.9, unitG: 50 },
+    { id: "platano", name: "Plátano", keys: ["platano", "plátano"], kcal: 88, p: 1.1, c: 22.5, f: 0.3, unitG: 120 },
+    { id: "almendra", name: "Almendras / Frutos secos", keys: ["almendra", "almendras", "nueces"], kcal: 580, p: 21.2, c: 21.6, f: 50.0, unitG: 25 },
+    { id: "chia", name: "Semillas de chía", keys: ["chia", "chía"], kcal: 490, p: 17.0, c: 42.0, f: 31.0, unitG: 10 },
+    { id: "mango", name: "Mango congelado / natural", keys: ["mango"], kcal: 60, p: 0.8, c: 15.0, f: 0.4, unitG: 50 },
+    { id: "fresa", name: "Fresas congeladas / naturales", keys: ["fresa", "fresas"], kcal: 32, p: 0.6, c: 7.6, f: 0.4, unitG: 50 },
+    { id: "pollo", name: "Pechuga de pollo / pavo", keys: ["pollo", "pechuga", "pavo"], kcal: 115, p: 23.0, c: 0, f: 2.0, unitG: 200 },
+    { id: "arroz", name: "Arroz blanco (en seco)", keys: ["arroz"], kcal: 360, p: 7.0, c: 79.0, f: 0.6, unitG: 100 },
+    { id: "huevos", name: "Huevos enteros", keys: ["huevo", "huevos"], kcal: 155, p: 13.0, c: 1.1, f: 11.0, unitG: 60 },
+    { id: "whey", name: "Proteína Whey Isolate", keys: ["whey", "proteina", "isolate", "cazo"], kcal: 370, p: 88.0, c: 2.0, f: 1.0, unitG: 30 },
+    { id: "atun", name: "Atún al natural", keys: ["atun", "atún"], kcal: 105, p: 24.0, c: 0, f: 1.0, unitG: 60 },
+    { id: "salmon", name: "Salmón / Pescado azul", keys: ["salmon", "salmón"], kcal: 208, p: 20.0, c: 0, f: 13.0, unitG: 160 }
+  ];
+
+  const defaultLogs = [
+    { id: 1, date: "2026-10-14", meal: "Desayuno", foodId: "tostadas", grams: 60 },
+    { id: 2, date: "2026-10-14", meal: "Desayuno", foodId: "aceite", grams: 10 },
+    { id: 3, date: "2026-10-14", meal: "Desayuno", foodId: "jamon", grams: 50 },
+    { id: 4, date: "2026-10-14", meal: "Desayuno", foodId: "leche", grams: 250 },
+    { id: 5, date: "2026-10-14", meal: "Comida", foodId: "patata", grams: 250 },
+    { id: 6, date: "2026-10-14", meal: "Comida", foodId: "pescado", grams: 200 },
+    { id: 7, date: "2026-10-14", meal: "Comida", foodId: "tomate", grams: 100 },
+    { id: 8, date: "2026-10-14", meal: "Merienda", foodId: "avena", grams: 65 },
+    { id: 9, date: "2026-10-14", meal: "Merienda", foodId: "platano", grams: 120 },
+    { id: 10, date: "2026-10-14", meal: "Merienda", foodId: "almendra", grams: 25 },
+    { id: 11, date: "2026-10-14", meal: "Merienda", foodId: "leche", grams: 250 },
+    { id: 12, date: "2026-10-14", meal: "Merienda", foodId: "chia", grams: 10 },
+    { id: 13, date: "2026-10-14", meal: "Merienda", foodId: "mango", grams: 50 },
+    { id: 14, date: "2026-10-14", meal: "Merienda", foodId: "fresa", grams: 50 }
+  ];
+
+  let cfg = loadCfg();
+  let db = loadDB();
+
+  function loadCfg() {
+    try {
+      return JSON.parse(localStorage.getItem(CFG_KEY)) || { geminiKey: "", cloudUrl: "", pin: "alejandro_db" };
+    } catch (e) {
+      return { geminiKey: "", cloudUrl: "", pin: "alejandro_db" };
+    }
+  }
+
+  function loadDB() {
+    try {
+      const saved = localStorage.getItem(DB_KEY);
+      if (saved) return JSON.parse(saved);
+    } catch (e) {}
+    return { updatedAt: Date.now(), goals: { kcal: 2750, p: 150, c: 355, f: 80 }, catalog: defaultCatalog, logs: defaultLogs, nextId: 15 };
+  }
+
+  function saveDB() {
+    db.updatedAt = Date.now();
+    localStorage.setItem(DB_KEY, JSON.stringify(db));
+    pushToCloud(false);
+  }
+
+  function getCloudEndpoint() {
+    if (!cfg.cloudUrl) return null;
+    const base = cfg.cloudUrl.replace(/\/+$/, "");
+    const pin = (cfg.pin || "alejandro_db").replace(/[^a-zA-Z0-9_-]/g, "");
+    return `${base}/nutridb_${pin}.json`;
+  }
+
+  async function pushToCloud(manual) {
+    const url = getCloudEndpoint();
+    if (!url) return;
+    try {
+      await fetch(url, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(db)
+      });
+      updateSyncUI(true, "Sincronizado en la nube");
+      if (manual) document.getElementById("cloud-feedback").innerHTML = "✅ Datos subidos correctamente a la nube.";
+    } catch (e) {
+      updateSyncUI(false, "Error de red al subir");
+    }
+  }
+
+  async function pullFromCloud(manual) {
+    const url = getCloudEndpoint();
+    if (!url) return;
+    try {
+      const res = await fetch(url);
+      if (!res.ok) return;
+      const remote = await res.json();
+      if (remote && remote.logs) {
+        if (manual || !db.updatedAt || (remote.updatedAt && remote.updatedAt >= db.updatedAt)) {
+          db = remote;
+          localStorage.setItem(DB_KEY, JSON.stringify(db));
+          renderAll();
+        }
+        updateSyncUI(true, "Sincronizado en tiempo real");
+        if (manual) document.getElementById("cloud-feedback").innerHTML = "✅ Datos descargados desde la nube.";
+      }
+    } catch (e) {
+      updateSyncUI(false, "Sin conexión a la nube");
+    }
+  }
+
+  function updateSyncUI(online, text) {
+    const dot = document.getElementById("sync-dot");
+    const lbl = document.getElementById("sync-label");
+    const sub = document.getElementById("sync-sub");
+    if (online) {
+      dot.classList.add("online");
+      lbl.textContent = text;
+      sub.textContent = `Canal activo: ${cfg.pin} (Auto-sync activado)`;
+    } else {
+      dot.classList.remove("online");
+      lbl.textContent = text;
+    }
+  }
+
+  function saveCloudConfig() {
+    cfg.geminiKey = document.getElementById("cfg-gemini-key").value.trim();
+    cfg.cloudUrl = document.getElementById("cfg-cloud-url").value.trim();
+    cfg.pin = document.getElementById("cfg-user-pin").value.trim() || "alejandro_db";
+    localStorage.setItem(CFG_KEY, JSON.stringify(cfg));
+    document.getElementById("cloud-feedback").innerHTML = "✅ Configuración guardada. Sincronizando...";
+    pullFromCloud(true);
+  }
+
+  // ANALIZADOR CON IA DE GEMINI EN VIVO + FALLBACK LOCAL
+  async function smartAddWithAI() {
+    const raw = document.getElementById("nlp-text").value.trim();
+    const date = document.getElementById("active-date").value;
+    const msg = document.getElementById("nlp-msg");
+    const btn = document.getElementById("btn-smart-add");
+    if (!raw) return;
+
+    // Si el usuario ha configurado su API Key de Gemini, usamos Gemini 2.5 Flash para entender cualquier plato
+    if (cfg.geminiKey) {
+      btn.disabled = true;
+      btn.textContent = "⏳ Calculando con Gemini...";
+      msg.innerHTML = `<span style="color:var(--prot)">Analizando ingredientes y macros exactos con Gemini AI...</span>`;
+
+      const prompt = `Analiza este registro de comida en español: "${raw}".
+Devuelve ÚNICAMENTE un JSON válido con un array de objetos bajo la propiedad "items".
+Para cada alimento detectado, calcula sus valores nutricionales reales por cada 100 gramos y los gramos totales consumidos estimados:
+{"items": [{"name": "Nombre claro del alimento", "grams": 150, "kcal100": 120, "p100": 20.5, "c100": 2.0, "f100": 3.5}]}`;
+
+      try {
+        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${cfg.geminiKey}`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            contents: [{ parts: [{ text: prompt }] }],
+            generationConfig: { responseMimeType: "application/json" }
+          })
+        });
+
+        const data = await response.json();
+        const textOut = data.candidates?.[0]?.content?.parts?.[0]?.text;
+        const parsed = JSON.parse(textOut);
+
+        if (parsed && Array.isArray(parsed.items) && parsed.items.length > 0) {
+          parsed.items.forEach(it => {
+            const normName = it.name.trim();
+            let existing = db.catalog.find(c => c.name.toLowerCase() === normName.toLowerCase());
+            if (!existing) {
+              existing = {
+                id: "ai_" + Date.now() + "_" + Math.floor(Math.random() * 1000),
+                name: normName,
+                keys: [normName.toLowerCase()],
+                kcal: Math.round(Number(it.kcal100) || 0),
+                p: Number(Number(it.p100 || 0).toFixed(1)),
+                c: Number(Number(it.c100 || 0).toFixed(1)),
+                f: Number(Number(it.f100 || 0).toFixed(1)),
+                unitG: Math.round(Number(it.grams) || 100)
+              };
+              db.catalog.push(existing);
+            }
+            db.logs.push({
+              id: db.nextId++,
+              date,
+              meal: selectedSmartMeal,
+              foodId: existing.id,
+              grams: Math.round(Number(it.grams) || 100)
+            });
+          });
+
+          saveDB();
+          document.getElementById("nlp-text").value = "";
+          msg.innerHTML = `<span style="color:var(--success)">✨ Gemini ha calculado y añadido ${parsed.items.length} alimento(s) a ${selectedSmartMeal}.</span>`;
+          btn.disabled = false;
+          btn.textContent = "✨ Analizar y Guardar";
+          renderAll();
+          return;
+        }
+      } catch (err) {
+        console.warn("Fallo llamada API, usando motor local:", err);
+      }
+      btn.disabled = false;
+      btn.textContent = "✨ Analizar y Guardar";
+    }
+
+    // Motor local instantáneo si no hay API Key configurada
+    const chunks = raw.toLowerCase().split(/,| y |\n|\+/);
+    const wordNumbers = { "un": 1, "una": 1, "uno": 1, "dos": 2, "tres": 3, "cuatro": 4, "medio": 0.5, "media": 0.5 };
+    let count = 0;
+
+    chunks.forEach(chunk => {
+      const text = chunk.trim();
+      if (!text) return;
+      let found = null;
+      for (const item of db.catalog) {
+        for (const k of item.keys) {
+          if (text.includes(k)) { found = item; break; }
+        }
+        if (found) break;
+      }
+      if (found) {
+        let grams = found.unitG || 100;
+        const gMatch = text.match(/(\d+(?:[.,]\d+)?)\s*(?:g|gr|gramos|ml)/);
+        const nMatch = text.match(/(\d+(?:[.,]\d+)?)/);
+        if (gMatch) grams = parseFloat(gMatch[1].replace(",", "."));
+        else if (nMatch) {
+          const v = parseFloat(nMatch[1].replace(",", "."));
+          grams = v <= 10 ? v * (found.unitG || 100) : v;
+        } else {
+          for (const [w, mult] of Object.entries(wordNumbers)) {
+            if (new RegExp(`\\b${w}\\b`).test(text)) { grams = mult * (found.unitG || 100); break; }
+          }
+        }
+        db.logs.push({ id: db.nextId++, date, meal: selectedSmartMeal, foodId: found.id, grams: Math.round(grams) });
+        count++;
+      }
+    });
+
+    if (count > 0) {
+      saveDB();
+      document.getElementById("nlp-text").value = "";
+      msg.innerHTML = `<span style="color:var(--success)">✓ Añadidos ${count} alimento(s) a ${selectedSmartMeal}.</span>`;
+      renderAll();
+    } else {
+      msg.innerHTML = `<span style="color:var(--kcal)">⚠️ Para que analice cualquier plato nuevo automáticamente, pon tu Gemini API Key gratis en la pestaña "☁️ Nube + IA".</span>`;
+    }
+  }
+
+  function getFood(id) { return db.catalog.find(x => x.id === id) || db.catalog[0]; }
+
+  function switchView(viewName, btnEl) {
+    ["dashboard", "calendario", "historial", "cloud"].forEach(v => document.getElementById(`view-${v}`).classList.add("hidden"));
+    document.getElementById(`view-${viewName}`).classList.remove("hidden");
+    document.querySelectorAll(".nav-btn, .bnav-btn").forEach(b => b.classList.remove("active"));
+    if (btnEl) btnEl.classList.add("active");
+    if (viewName === "calendario") renderCalendar();
+    if (viewName === "historial") renderHistoryTables();
+  }
+
+  function selectSmartMeal(meal, btn) {
+    selectedSmartMeal = meal;
+    document.querySelectorAll(".meal-pill").forEach(b => b.classList.remove("active"));
+    btn.classList.add("active");
+  }
+
+  function stepDate(delta) {
+    const inp = document.getElementById("active-date");
+    const d = new Date(inp.value + "T12:00:00");
+    d.setDate(d.getDate() + delta);
+    inp.value = d.toISOString().slice(0, 10);
+    onDateInputChange();
+  }
+
+  function jumpToToday() {
+    document.getElementById("active-date").value = "2026-10-14";
+    calYear = 2026; calMonth = 9;
+    onDateInputChange();
+  }
+
+  function onDateInputChange() {
+    const val = document.getElementById("active-date").value;
+    if (val) {
+      const parts = val.split("-");
+      calYear = parseInt(parts[0], 10);
+      calMonth = parseInt(parts[1], 10) - 1;
+    }
+    renderAll();
+  }
+
+  function updateGoals() {
+    db.goals = {
+      kcal: Number(document.getElementById("goal-kcal").value) || 2750,
+      p: Number(document.getElementById("goal-p").value) || 150,
+      c: Number(document.getElementById("goal-c").value) || 355,
+      f: Number(document.getElementById("goal-f").value) || 80
+    };
+    saveDB();
+    renderAll();
+  }
+
+  function quickAdd(meal, foodId, grams) {
+    const date = document.getElementById("active-date").value;
+    db.logs.push({ id: db.nextId++, date, meal, foodId, grams });
+    saveDB();
+    renderAll();
+  }
+
+  function updateItemGrams(id, val) {
+    const row = db.logs.find(x => x.id === id);
+    if (row) { row.grams = Math.max(0, Number(val) || 0); saveDB(); renderAll(); }
+  }
+
+  function deleteItem(id) {
+    db.logs = db.logs.filter(x => x.id !== id);
+    saveDB();
+    renderAll();
+  }
+
+  function manualAdd(meal) {
+    const sel = document.getElementById(`sel-${meal}`);
+    const gInp = document.getElementById(`inp-${meal}`);
+    const date = document.getElementById("active-date").value;
+    db.logs.push({ id: db.nextId++, date, meal, foodId: sel.value, grams: Number(gInp.value) || 100 });
+    saveDB();
+    renderAll();
+  }
+
+  function setRing(id, val, max, unit) {
+    const num = Number(val);
+    const pct = Math.max(0, Math.round((num / max) * 100));
+    const offset = 163.36 - (Math.min(100, pct) / 100) * 163.36;
+    document.getElementById(`ring-${id}`).style.strokeDashoffset = offset;
+    document.getElementById(`pct-${id}`).textContent = `${pct}%`;
+    document.getElementById(`val-${id}`).textContent = val;
+    document.getElementById(`max-${id}`).textContent = max;
+    const diff = max - num;
+    const remEl = document.getElementById(`rem-${id}`);
+    remEl.textContent = diff > 0 ? `Faltan ${diff.toFixed(unit === "kcal" ? 0 : 1)} ${unit}` : `Meta lograda (+${Math.abs(diff).toFixed(unit === "kcal" ? 0 : 1)} ${unit})`;
+    remEl.style.color = diff > 0 ? "var(--muted)" : "var(--success)";
+  }
+
+  function renderDayMeals() {
+    const date = document.getElementById("active-date").value;
+    const dayLogs = db.logs.filter(l => l.date === date);
+    const meals = [{ key: "Desayuno", icon: "☀️" }, { key: "Comida", icon: "🍽️" }, { key: "Merienda", icon: "🥤" }, { key: "Cena", icon: "🌙" }];
+    let totalK = 0, totalP = 0, totalC = 0, totalF = 0;
+    const listEl = document.getElementById("meals-list");
+    listEl.innerHTML = "";
+    const optionsHtml = db.catalog.map(f => `<option value="${f.id}">${f.name}</option>`).join("");
+
+    meals.forEach(m => {
+      const

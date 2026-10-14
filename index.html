@@ -1105,4 +1105,173 @@ Para cada alimento detectado, calcula sus valores nutricionales reales por cada 
     const optionsHtml = db.catalog.map(f => `<option value="${f.id}">${f.name}</option>`).join("");
 
     meals.forEach(m => {
-      const
+      const items = dayLogs.filter(x => x.meal === m.key);
+      let mK = 0, mP = 0, mC = 0, mF = 0, itemsHtml = "";
+      items.forEach(it => {
+        const f = getFood(it.foodId);
+        const r = it.grams / 100;
+        const k = f.kcal * r, p = f.p * r, c = f.c * r, fat = f.f * r;
+        mK += k; mP += p; mC += c; mF += fat;
+        itemsHtml += `
+          <div class="food-item">
+            <div style="font-weight:600">${f.name}</div>
+            <div class="gram-box">
+              <input type="number" value="${it.grams}" min="0" step="5" onchange="updateItemGrams(${it.id}, this.value)">
+              <span style="font-size:0.74rem;color:var(--muted)">g</span>
+            </div>
+            <div class="food-item-macros">
+              <span style="color:var(--kcal);font-weight:700">${Math.round(k)} kcal</span> ·
+              <span style="color:var(--prot)">${p.toFixed(1)}P</span> ·
+              <span style="color:var(--carb)">${c.toFixed(1)}C</span> ·
+              <span style="color:var(--fat)">${fat.toFixed(1)}G</span>
+            </div>
+            <button class="del-btn" onclick="deleteItem(${it.id})">✕</button>
+          </div>`;
+      });
+      totalK += mK; totalP += mP; totalC += mC; totalF += mF;
+      listEl.innerHTML += `
+        <div class="meal-card">
+          <div class="meal-card-head">
+            <h3 class="meal-card-title">${m.icon} ${m.key}</h3>
+            <div class="meal-badges">
+              <span class="badge b-kcal">${Math.round(mK)} kcal</span>
+              <span class="badge b-prot">${mP.toFixed(1)}P</span>
+              <span class="badge b-carb">${mC.toFixed(1)}C</span>
+              <span class="badge b-fat">${mF.toFixed(1)}G</span>
+            </div>
+          </div>
+          <div>${itemsHtml || '<div style="font-size:0.8rem;color:var(--muted);">Sin registros.</div>'}</div>
+          <div class="manual-add-row">
+            <select id="sel-${m.key}">${optionsHtml}</select>
+            <input type="number" id="inp-${m.key}" value="100" step="10" style="width:74px;background:var(--bg-elevated);color:var(--text);border:1px solid var(--border);border-radius:8px;text-align:center;font-weight:700;">
+            <button class="btn-soft" onclick="manualAdd('${m.key}')">+ Añadir</button>
+          </div>
+        </div>`;
+    });
+
+    setRing("kcal", Math.round(totalK), db.goals.kcal, "kcal");
+    setRing("p", totalP.toFixed(1), db.goals.p, "g");
+    setRing("c", totalC.toFixed(1), db.goals.c, "g");
+    setRing("f", totalF.toFixed(1), db.goals.f, "g");
+  }
+
+  function changeCalendarMonth(delta) {
+    calMonth += delta;
+    if (calMonth < 0) { calMonth = 11; calYear--; }
+    if (calMonth > 11) { calMonth = 0; calYear++; }
+    renderCalendar();
+  }
+
+  function getTotalsMapByDate() {
+    const map = {};
+    db.logs.forEach(l => {
+      if (!map[l.date]) map[l.date] = { k: 0, p: 0, c: 0, f: 0, count: 0 };
+      const f = getFood(l.foodId);
+      const r = l.grams / 100;
+      map[l.date].k += f.kcal * r; map[l.date].p += f.p * r; map[l.date].c += f.c * r; map[l.date].f += f.f * r; map[l.date].count++;
+    });
+    return map;
+  }
+
+  function renderCalendar() {
+    const monthsEs = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
+    const title = `${monthsEs[calMonth]} ${calYear}`;
+    document.getElementById("cal-month-title").textContent = title;
+    document.getElementById("cal-month-title-full").textContent = title;
+
+    const firstDay = new Date(calYear, calMonth, 1);
+    const totalDays = new Date(calYear, calMonth + 1, 0).getDate();
+    const startOffset = (firstDay.getDay() + 6) % 7;
+    const activeDate = document.getElementById("active-date").value;
+    const totalsMap = getTotalsMapByDate();
+
+    let html = "";
+    for (let i = 0; i < startOffset; i++) html += `<div class="cal-day empty"></div>`;
+    for (let d = 1; d <= totalDays; d++) {
+      const iso = `${calYear}-${String(calMonth + 1).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
+      const data = totalsMap[iso];
+      const isSelected = iso === activeDate;
+      if (data) {
+        const kPct = Math.min(100, Math.round((data.k / db.goals.kcal) * 100));
+        const pPct = Math.min(100, Math.round((data.p / db.goals.p) * 100));
+        const cPct = Math.min(100, Math.round((data.c / db.goals.c) * 100));
+        const fPct = Math.min(100, Math.round((data.f / db.goals.f) * 100));
+        html += `
+          <div class="cal-day has-data ${isSelected ? 'selected' : ''}" onclick="selectDateFromCalendar('${iso}')">
+            <div class="cal-day-top"><span>${d}</span><span class="status-dot" style="background:${kPct >= 92 ? 'var(--success)' : 'var(--kcal)'}"></span></div>
+            <div class="cal-day-kcal">${Math.round(data.k)} <small style="font-size:0.6rem">kcal</small></div>
+            <div class="cal-mini-bars">
+              <div class="cal-mini-bar"><div style="width:${pPct}%;background:var(--prot)"></div></div>
+              <div class="cal-mini-bar"><div style="width:${cPct}%;background:var(--carb)"></div></div>
+              <div class="cal-mini-bar"><div style="width:${fPct}%;background:var(--fat)"></div></div>
+            </div>
+          </div>`;
+      } else {
+        html += `<div class="cal-day ${isSelected ? 'selected' : ''}" onclick="selectDateFromCalendar('${iso}')"><div class="cal-day-top"><span style="color:var(--muted)">${d}</span></div></div>`;
+      }
+    }
+    document.getElementById("cal-grid-side").innerHTML = html;
+    document.getElementById("cal-grid-full").innerHTML = html;
+  }
+
+  function selectDateFromCalendar(isoDate) {
+    document.getElementById("active-date").value = isoDate;
+    renderAll();
+    if (!document.getElementById("view-calendario").classList.contains("hidden")) {
+      switchView("dashboard", document.querySelector(".nav-btn"));
+    }
+  }
+
+  function renderHistoryTables() {
+    const map = getTotalsMapByDate();
+    const dates = Object.keys(map).sort().reverse();
+    document.getElementById("db-days-tbody").innerHTML = dates.map(d => {
+      const info = map[d];
+      return `<tr>
+        <td><strong>${d}</strong></td><td>${info.count}</td>
+        <td style="color:var(--kcal);font-weight:700">${Math.round(info.k)} kcal</td>
+        <td style="color:var(--prot)">${info.p.toFixed(1)}g</td>
+        <td style="color:var(--carb)">${info.c.toFixed(1)}g</td>
+        <td style="color:var(--fat)">${info.f.toFixed(1)}g</td>
+        <td><button class="btn-soft" onclick="selectDateFromCalendar('${d}')">Abrir</button></td>
+      </tr>`;
+    }).join("");
+
+    document.getElementById("cat-tbody").innerHTML = db.catalog.map(f => `
+      <tr><td><strong>${f.name}</strong></td><td style="color:var(--kcal)">${f.kcal}</td><td style="color:var(--prot)">${f.p}g</td><td style="color:var(--carb)">${f.c}g</td><td style="color:var(--fat)">${f.f}g</td></tr>
+    `).join("");
+  }
+
+  function exportCSV() {
+    let csv = "ID,Fecha,Comida,Alimento,Gramos,Kcal,Proteinas,Carbos,Grasas\n";
+    db.logs.forEach(l => {
+      const f = getFood(l.foodId); const r = l.grams / 100;
+      csv += `${l.id},${l.date},${l.meal},"${f.name}",${l.grams},${Math.round(f.kcal*r)},${(f.p*r).toFixed(1)},${(f.c*r).toFixed(1)},${(f.f*r).toFixed(1)}\n`;
+    });
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(new Blob([csv], { type: "text/csv;charset=utf-8;" }));
+    a.download = "nutridb_cloud.csv";
+    a.click();
+  }
+
+  function renderAll() {
+    document.getElementById("goal-kcal").value = db.goals.kcal;
+    document.getElementById("goal-p").value = db.goals.p;
+    document.getElementById("goal-c").value = db.goals.c;
+    document.getElementById("goal-f").value = db.goals.f;
+    document.getElementById("cfg-gemini-key").value = cfg.geminiKey || "";
+    document.getElementById("cfg-cloud-url").value = cfg.cloudUrl || "";
+    document.getElementById("cfg-user-pin").value = cfg.pin || "alejandro_db";
+    renderDayMeals();
+    renderCalendar();
+  }
+
+  // Auto-Sync al abrir la app y cada vez que cambias del móvil a la tablet/PC
+  window.addEventListener("focus", () => pullFromCloud(false));
+  setInterval(() => pullFromCloud(false), 20000);
+
+  renderAll();
+  pullFromCloud(false);
+</script>
+</body>
+</html>
